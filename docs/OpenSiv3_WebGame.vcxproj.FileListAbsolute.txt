@@ -1,1 +1,2 @@
-C:\Users\aguro\Documents\SourceTree\OpenSiv3D_WebGame\OpenSiv3_WebGame\Emscripten\Release\OpenSiv3_WebGame.html
+C:\Users\aguro\Documents\SourceTree\OpenSiv3D_WebGame\OpenSiv3_WebGame\Emscripten\Debug\OpenSiv3_WebGame.html
+C:\Users\aguro\Documents\SourceTree\OpenSiv3D_WebGame\Emscripten\Debug\OpenSiv3_WebGame.html

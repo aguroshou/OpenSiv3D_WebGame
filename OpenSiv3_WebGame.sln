@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.7.34031.279
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.33130.400
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSiv3_WebGame", "OpenSiv3_WebGame.vcxproj", "{0C92EB34-774F-4EFF-8342-160D32F8D9FD}"
 EndProject
@@ -13,8 +13,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0C92EB34-774F-4EFF-8342-160D32F8D9FD}.Debug|Emscripten.ActiveCfg = Debug|Emscripten
 		{0C92EB34-774F-4EFF-8342-160D32F8D9FD}.Debug|Emscripten.Build.0 = Debug|Emscripten
-		{0C92EB34-774F-4EFF-8342-160D32F8D9FD}.Release|Emscripten.ActiveCfg = Release|Emscripten
-		{0C92EB34-774F-4EFF-8342-160D32F8D9FD}.Release|Emscripten.Build.0 = Release|Emscripten
+		{0C92EB34-774F-4EFF-8342-160D32F8D9FD}.Release|Emscripten.ActiveCfg = Debug|Emscripten
+		{0C92EB34-774F-4EFF-8342-160D32F8D9FD}.Release|Emscripten.Build.0 = Debug|Emscripten
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,2 +1,2 @@
 PlatformToolSet=emcc:VCToolArchitecture=Native64Bit:TargetPlatformVersion=7.0:
-Release|Emscripten|C:\Users\aguro\Documents\SourceTree\OpenSiv3D_WebGame\OpenSiv3_WebGame\|
+Debug|Emscripten|C:\Users\aguro\Documents\SourceTree\OpenSiv3D_WebGame\|
