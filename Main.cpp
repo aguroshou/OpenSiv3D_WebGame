@@ -1,63 +1,4 @@
-//# include <Siv3D.hpp>
-//
-//void Main()
-//{
-//    // Set background color to sky blue
-//    Scene::SetBackground(ColorF{ 0.8, 0.9, 1.0 });
-//
-//    // Create a new font
-//    const Font font{ 60 };
-//    
-//    // Create a new emoji font
-//    const Font emojiFont{ 60, Typeface::ColorEmoji };
-//    
-//    // Set emojiFont as a fallback
-//    font.addFallback(emojiFont);
-//
-//    // Create a texture from an image file
-//    const Texture texture{ U"example/windmill.png" };
-//
-//    // Create a texture from an emoji
-//    const Texture emoji{ U"🐈"_emoji };
-//
-//    // Coordinates of the emoji
-//    Vec2 emojiPos{ 300, 150 };
-//
-//    // Print a text
-//    Print << U"Push [A] key";
-//
-//    while (System::Update())
-//    { 
-//        // Draw a texture
-//        texture.draw(200, 200);
-//
-//        // Put a text in the middle of the screen
-//        font(U"Hello, Siv3D!🚀").drawAt(Scene::Center(), Palette::Black);
-//
-//        // Draw a texture with animated size
-//        emoji.resized(100 + Periodic::Sine0_1(1s) * 20).drawAt(emojiPos);
-//
-//        // Draw a red transparent circle that follows the mouse cursor
-//        Circle{ Cursor::Pos(), 40 }.draw(ColorF{ 1, 0, 0, 0.5 });
-//
-//        // When [A] key is down
-//        if (KeyA.down())
-//        {
-//            // Print a randomly selected text
-//            Print << Sample({ U"Hello!", U"こんにちは", U"你好", U"안녕하세요?" });
-//        }
-//
-//        // When [Button] is pushed
-//        if (SimpleGUI::Button(U"Button", Vec2{ 640, 40 }))
-//        {
-//            // Move the coordinates to a random position in the screen
-//            emojiPos = RandomVec2(Scene::Rect());
-//        }
-//    }
-//}
-
-
-# include <Siv3D.hpp>
+# include <Siv3D.hpp> // OpenSiv3D v0.6.3
 
 void Main()
 {
@@ -68,140 +9,278 @@ void Main()
 	Scene::SetBackground(ColorF{ 0.4, 0.7, 1.0 });
 
 	// 2D 物理演算のシミュレーションステップ（秒）
-	constexpr double StepTime = (1.0 / 200.0);
+	constexpr double StepSec = (1.0 / 200.0);
 
 	// 2D 物理演算のシミュレーション蓄積時間（秒）
-	double accumulatedTime = 0.0;
+	double accumulatorSec = 0.0;
 
 	// 2D 物理演算のワールド
 	P2World world;
 
-	// [_] 地面
-	const P2Body ground = world.createLine(P2Static, Vec2{ 0, 0 }, Line{ -1600, 0, 1600, 0 });
+	world.setGravity(0.0);
 
-	// [■] 箱 (Sleep させておく)
-	Array<P2Body> boxes;
+	// 上下左右の壁
+	Array<P2Body>  walls;
+	walls << world.createRect(P2Static, Vec2{ 640, -100 }, SizeF{ 1480, 200 }, P2Material{ .density = 20.0, .restitution = 0.0, .friction = 0.0 });
+	walls << world.createRect(P2Static, Vec2{ -100, 360 }, SizeF{ 200, 920 }, P2Material{ .density = 20.0, .restitution = 0.0, .friction = 0.0 });
+	walls << world.createRect(P2Static, Vec2{ 640, 820 }, SizeF{ 1480, 200 }, P2Material{ .density = 20.0, .restitution = 0.0, .friction = 0.0 });
+	walls << world.createRect(P2Static, Vec2{ 1380, 360 }, SizeF{ 200, 920 }, P2Material{ .density = 20.0, .restitution = 0.0, .friction = 0.0 });
+
+	// 箱
+	//Array<P2Body> boxes;
+	//{
+	//	for (int32 y = 0; y < 6; ++y) // 縦に
+	//	{
+	//		for (int32 x = 0; x < 4; ++x) // 横に
+	//		{
+	//			boxes << world.createRect(P2Dynamic, Vec2{ (300 + x * 20), (-30 - y * 60) }, SizeF{ 20, 60 },
+	//				P2Material{ .density = 40.0, .restitution = 0.05, .friction = 1.0 })
+	//				.setAwake(false); // 初期状態で安定するよう Sleep させておく
+	//		}
+	//	}
+	//}
+
+
+	// ボール
+	Array<P2Body> balls;
+
+	// ボールの半径 (cm)
+	constexpr double BallRadius = 20;
+
+	Array<P2Body> playerAnimals;
 	{
-		for (auto y : Range(0, 12))
+		for (int32 x = 0; x < 5; ++x)
 		{
-			for (auto x : Range(0, 20))
-			{
-				boxes << world.createRect(P2Dynamic, Vec2{ x * 50, -50 - y * 100 },
-					SizeF{ 50, 100 }, P2Material{ .density = 0.02, .restitution = 0.0, .friction = 1.0 })
-					.setAwake(false);
-			}
+			playerAnimals << world.createCircle(P2Dynamic, Vec2{ 100 + x * 50, 100 }, BallRadius,
+				P2Material{ .density = 40.0, .restitution = 0.0, .friction = 0.0 });
+			//.setAwake(false); // 初期状態で安定するよう Sleep させておく
 		}
 	}
+	bool isPlayerAnimalGrab = false;
 
-	// 振り子の軸の座標
-	constexpr Vec2 PivotPos{ 0, -2400 };
+	// 発射するボールの初期位置
+	constexpr Circle StartCircle{ -400, -200, BallRadius };
 
-	// チェーンを構成するリンク 1 つの長さ
-	constexpr double LinkLength = 100.0;
+	// ボールをつかんでいるか
+	// つかんでいる場合は最初につかんだ座標を格納
+	Optional<Vec2> grabbed;
 
-	// チェーンを構成するリンクの数
-	constexpr int32 LinkCount = 16;
+	// 新しく発射できるまでのクールタイム
+	constexpr Duration CoolTime = 0.3s;
 
-	// チェーンの長さ
-	constexpr double ChainLength = (LinkLength * LinkCount);
-
-	// 鉄球の半径
-	constexpr double BallRadius = 200;
-
-	// 鉄球の初期座標
-	constexpr Vec2 BallCenter = PivotPos.movedBy(-ChainLength - BallRadius, 0);
-
-	// [●] 鉄球
-	const P2Body ball = world.createCircle(P2BodyType::Dynamic, BallCenter, BallRadius,
-		P2Material{ .density = 0.5, .restitution = 0.0, .friction = 1.0 });
-
-	// [ ] 振り子の軸（実体がないプレースホルダー）
-	const P2Body pivot = world.createPlaceholder(P2BodyType::Static, PivotPos);
-
-	// [-] チェーンを構成するリンク
-	Array<P2Body> links;
-
-	// リンクどうしやリンクと鉄球をつなぐジョイント
-	Array<P2PivotJoint> joints;
-	{
-		for (auto i : step(LinkCount))
-		{
-			// リンクの長方形（隣接するリンクと重なるよう少し大きめに）
-			const RectF rect{ Arg::rightCenter = PivotPos.movedBy(i * -LinkLength, 0), LinkLength * 1.2, 20 };
-
-			// categoryBits を 0 にすることで、箱など他の物体と干渉しないようにする
-			links << world.createRect(P2Dynamic, rect.center(), rect.size,
-				P2Material{ .density = 0.1, .restitution = 0.0, .friction = 1.0 }, P2Filter{ .categoryBits = 0 });
-
-			if (i == 0)
-			{
-				// 振り子の軸と最初のリンクをつなぐジョイント
-				joints << world.createPivotJoint(pivot, links.back(), rect.rightCenter().movedBy(-LinkLength * 0.1, 0));
-			}
-			else
-			{
-				// 新しいリンクと、一つ前のリンクをつなぐジョイント
-				joints << world.createPivotJoint(links[links.size() - 2], links.back(), rect.rightCenter().movedBy(-LinkLength * 0.1, 0));
-			}
-		}
-
-		// 最後のリンクと鉄球をつなぐジョイント
-		joints << world.createPivotJoint(links.back(), ball, PivotPos.movedBy(-ChainLength, 0));
-	}
-
-	// [/] ストッパー
-	P2Body stopper = world.createLine(P2Static, BallCenter.movedBy(0, 200), Line{ -400, 200, 400, 0 });
+	// 前回の発射からの経過時間を計るストップウォッチ
+	// クールタイム経過済みの状態で開始
+	Stopwatch timeSinceShot{ CoolTime, StartImmediately::Yes };
 
 	// 2D カメラ
-	Camera2D camera{ Vec2{ 0, -1200 }, 0.25 };
+	// 初期中心座標: (0, 200), 拡大倍率: 1.0, 手動操作なし
+
+	int32 grabAnimalIndex = 0;
+	bool isGrabbing = false;
+
+
+	// 詳しい仕組みを理解できていませんが、カメラ座標を(640, 360)とすることで、Cursor::PosF()とplayerAnimals[0].getPos()の座標が一致するようです。
+	Camera2D camera{ Vec2{ 640, 360 }, 1.0, CameraControl::None_ };
+	Array<P2Body> bodies;
 
 	while (System::Update())
 	{
-		for (accumulatedTime += Scene::DeltaTime(); StepTime <= accumulatedTime; accumulatedTime -= StepTime)
+		if (MouseL.down())
+		{
+			double minAnimalToCursorDistance = 10000;
+			for (int index = 0; index < playerAnimals.size(); index++)
+			{
+				double animalToCursorDistance = playerAnimals[index].getPos().distanceFrom(Cursor::PosF());
+				if (animalToCursorDistance < 100 && animalToCursorDistance < minAnimalToCursorDistance)
+				{
+					minAnimalToCursorDistance = animalToCursorDistance;
+					grabAnimalIndex = index;
+
+
+					isGrabbing = true;
+				}
+
+			}
+		}
+
+		if (MouseL.up() && isGrabbing)
+		{
+			isGrabbing = false;
+			Vec2 moveVector = Cursor::PosF() - playerAnimals[grabAnimalIndex].getPos();
+			playerAnimals[grabAnimalIndex].setVelocity(moveVector.normalized() * 50);
+		}
+
+
+
+
+		// 左クリックしたら
+		//if (MouseL.down())
+		//{
+		//	// クリックした場所に半径 10 cm のボールを作成する
+		//	playerAnimals << world.createCircle(P2Dynamic, Cursor::PosF(), 10);
+		//	playerAnimals << world
+		//		.createCircle(P2Dynamic, Cursor::PosF(), BallRadius,
+		//			P2Material{ .density = 100.0, .restitution = 0.0, .friction = 1.0 })
+		//		.setVelocity(Vec2(0,0));
+		//}
+		//// すべてのボディを描画する
+		//for (const auto& body : bodies)
+		//{
+		//	body.draw(HSV{ body.id() * 10.0 });
+		//	Print << Cursor::PosF();
+		//	Print << body.getPos();
+		//}
+
+
+////////////////////////////////
+//
+//	状態更新
+//
+////////////////////////////////
+
+// 新しいボールを発射できるか
+		const bool readyToLaunch = (CoolTime <= timeSinceShot);
+
+		for (accumulatorSec += Scene::DeltaTime(); StepSec <= accumulatorSec; accumulatorSec -= StepSec)
 		{
 			// 2D 物理演算のワールドを更新する
-			world.update(StepTime);
-
-			// 落下した box は削除する
-			boxes.remove_if([](const P2Body& body) { return (2000 < body.getPos().y); });
+			world.update(StepSec);
 		}
+
+		// 地面より下に落ちた箱を削除する
+		//boxes.remove_if([](const P2Body& b) { return (200 < b.getPos().y); });
+
+		// 地面より下に落ちたボールを削除する
+		balls.remove_if([](const P2Body& b) { return (200 < b.getPos().y); });
 
 		// 2D カメラを更新する
 		camera.update();
+
+		// 2D カメラによる座標変換の適用スコープ
 		{
-			// 2D カメラから Transformer2D を作成
-			const auto t = camera.createTransformer();
+			// 2D カメラから Transformer2D を作成する
+			const auto tr = camera.createTransformer();
 
-			// 地面を描く
-			ground.draw(ColorF{ 0.0, 0.5, 0.0 });
-
-			// チェーンを描く
-			for (const auto& link : links)
+			// 発射可能で、ボールの初期円を左クリックしたら
+			if (readyToLaunch && StartCircle.leftClicked())
 			{
-				link.draw(ColorF{ 0.25 });
+				// つかむ
+				grabbed = Cursor::PosF();
 			}
 
-			// 箱を描く
-			for (const auto& box : boxes)
+			// 発射するボールの位置
+			Vec2 ballPos = StartCircle.center;
+
+			// 発射するボールの, 初期位置からの移動
+			Vec2 ballDelta{ 0,0 };
+
+			if (grabbed)
 			{
-				box.draw(ColorF{ 0.6, 0.4, 0.2 });
+				ballDelta = (*grabbed - Cursor::PosF())
+					.limitLength(150); // 移動量を制限
+
+				ballPos -= ballDelta;
 			}
 
-			// ストッパーを描く
-			stopper.draw(ColorF{ 0.25 });
+			// つかんでいて, 左クリックを離したら
+			if (grabbed && MouseL.up())
+			{
+				// 円を追加
+				balls << world
+					.createCircle(P2Dynamic, ballPos, BallRadius,
+						P2Material{ .density = 100.0, .restitution = 0.0, .friction = 1.0 })
+					.setVelocity(ballDelta * 8); // 発射速度
 
-			// 鉄球を描く
-			ball.draw(ColorF{ 0.25 });
+				// つかんでいる状態を解除
+				grabbed.reset();
+
+				// 発射からの経過時間を 0 から測定
+				timeSinceShot.restart();
+			}
+
+			////////////////////////////////
+			//
+			//	描画
+			//
+			////////////////////////////////
+
+			//playerAnimals[0].draw();
+			for (const auto& playerAnimal : playerAnimals)
+			{
+				playerAnimal.draw(ColorF{ 0.6, 0.2, 0.0 })
+					.drawFrame(2); // 輪郭
+			}
+
+			// 地面を描画する
+			//{
+			//	// 地面の Quad を得る
+			//	const Quad groundQuad = ground.as<P2Rect>(0)->getQuad();
+
+			//	// Quad から長方形を復元する
+			//	const RectF groundRect{ groundQuad.p0, (groundQuad.p2 - groundQuad.p0) };
+
+			//	groundRect
+			//		.draw(ColorF{ 0.4, 0.2, 0.0 }) // 土部分
+			//		.drawFrame(40, 0, ColorF{ 0.2, 0.8, 0.4, 0.0 }, ColorF{ 0.2, 0.8, 0.4 }); // 草部分
+			//}
+
+			// すべてのボックスを描画する
+			//for (const auto& box : boxes)
+			//{
+			//	box.draw(ColorF{ 0.6, 0.2, 0.0 })
+			//		.drawFrame(2); // 輪郭
+			//}
+
+			// すべてのボールを描画する
+			for (const auto& ball : balls)
+			{
+				ball.draw();
+			}
+
+			// ボールを操作できるなら
+			if (readyToLaunch && (grabbed || StartCircle.mouseOver()))
+			{
+				// マウスカーソルを手のアイコンにする
+				Cursor::RequestStyle(CursorStyle::Hand);
+			}
+
+			// ボールの初期位置を描く
+			StartCircle.drawFrame(2);
+
+			// ボールを描く
+			if (readyToLaunch)
+			{
+				Circle{ ballPos, BallRadius }.draw();
+			}
+
+			// ボールを発射する方向の矢印を描く
+			if (20.0 < ballDelta.length())
+			{
+				Line{ ballPos, (ballPos + ballDelta) }
+					.stretched(-10)
+					.drawArrow(10, { 20, 20 }, ColorF{ 1.0, 0.0, 0.0, 0.5 });
+			}
+
+			// ボールの予測軌道を描く
+			if (not ballDelta.isZero())
+			{
+				// 発射速度
+				const Vec2 v0 = (ballDelta * 8);
+
+				// 0.15 秒区切りで 10 地点を表示
+				for (int32 i = 1; i <= 10; ++i)
+				{
+					const double t = (i * 0.15);
+
+					// t 秒後の位置（等加速度運動の式）
+					const Vec2 pos = ballPos + (v0 * t) + (0.5 * world.getGravity() * t * t);
+
+					// 予測地点を描く
+					Circle{ pos, 6 }
+						.draw(ColorF{ 1.0, 0.6 })
+						.drawFrame(3);
+				}
+			}
 		}
-
-		// ストッパーを無くす
-		if (stopper && SimpleGUI::Button(U"Go", Vec2{ 1100, 20 }))
-		{
-			// ストッパーを破棄する
-			stopper.release();
-		}
-
-		// 2D カメラの操作を描画
-		camera.draw(Palette::Orange);
 	}
 }
