@@ -381,7 +381,6 @@
     <None Include="resources\engine\texture\box-shadow\8.png">
       <Filter>Resource Files\resources\engine\texture\box-shadow</Filter>
     </None>
-
     <None Include="example\LICENSE.txt">
       <Filter>Resource Files\example</Filter>
     </None>
@@ -760,7 +759,6 @@
     <None Include="example\zip\zip_test.zip">
       <Filter>Resource Files\example\zip</Filter>
     </None>
-
   </ItemGroup>
   <ItemGroup>
     <None Include="Templates\Embeddable\web-player.html">
@@ -771,7 +769,30 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
+    <ClInclude Include="..\OpenSiv3D_Game\Common.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\OpenSiv3D_Game\Game.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\OpenSiv3D_Game\Ranking.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\OpenSiv3D_Game\Title.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\OpenSiv3D_Game\Game.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\OpenSiv3D_Game\Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\OpenSiv3D_Game\Ranking.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\OpenSiv3D_Game\Title.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

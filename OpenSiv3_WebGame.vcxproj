@@ -78,9 +78,6 @@
     <LibraryPath>$(SIV3D_0_6_6_WEB)\lib\freetype;$(SIV3D_0_6_6_WEB)\lib\giflib;$(SIV3D_0_6_6_WEB)\lib\harfbuzz;$(SIV3D_0_6_6_WEB)\lib\opencv;$(SIV3D_0_6_6_WEB)\lib\turbojpeg;$(SIV3D_0_6_6_WEB)\lib\webp;$(SIV3D_0_6_6_WEB)\lib\opus;$(SIV3D_0_6_6_WEB)\lib\tiff;$(SIV3D_0_6_6_WEB)\lib\png;$(SIV3D_0_6_6_WEB)\lib\zlib;$(SIV3D_0_6_6_WEB)\lib\SDL2;$(SIV3D_0_6_6_WEB)\lib</LibraryPath>
   </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="resources\engine\font\fontawesome\LICENSE.txt" />
     <None Include="resources\engine\font\fontawesome\fontawesome-brands.otf.zstdcmp" />
     <None Include="resources\engine\font\fontawesome\fontawesome-solid.otf.zstdcmp" />
@@ -294,6 +291,18 @@
   <ItemGroup>
     <None Include="Templates\Embeddable\web-player.html" />
     <None Include="Templates\Embeddable\web-player.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\OpenSiv3D_Game\Common.hpp" />
+    <ClInclude Include="..\OpenSiv3D_Game\Game.hpp" />
+    <ClInclude Include="..\OpenSiv3D_Game\Ranking.hpp" />
+    <ClInclude Include="..\OpenSiv3D_Game\Title.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\OpenSiv3D_Game\Game.cpp" />
+    <ClCompile Include="..\OpenSiv3D_Game\Main.cpp" />
+    <ClCompile Include="..\OpenSiv3D_Game\Ranking.cpp" />
+    <ClCompile Include="..\OpenSiv3D_Game\Title.cpp" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">
     <Link>
