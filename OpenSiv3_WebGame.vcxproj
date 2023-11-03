@@ -297,6 +297,7 @@
     <ClInclude Include="..\OpenSiv3D_Game\Game.hpp" />
     <ClInclude Include="..\OpenSiv3D_Game\Ranking.hpp" />
     <ClInclude Include="..\OpenSiv3D_Game\Title.hpp" />
+    <ClInclude Include="..\OpenSiv3D_Game\Url.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\OpenSiv3D_Game\Game.cpp" />
@@ -306,7 +307,7 @@
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">
     <Link>
-      <PreloadFile>$(ProjectDir)\resources@/resources;$(ProjectDir)\example@/example</PreloadFile>
+      <PreloadFile>C:\Users\aguro\Documents\SourceTree\OpenSiv3D_WebGame\\resources@/resources;C:\Users\aguro\Documents\SourceTree\OpenSiv3D_WebGame\\example@/example;C:\Users\aguro\Documents\SourceTree\OpenSiv3D_WebGame\\sounds@/sounds;C:\Users\aguro\Documents\SourceTree\OpenSiv3D_WebGame\\images@/images</PreloadFile>
       <AdditionalOptions>-s USE_OGG=1 -s USE_VORBIS=1 -s WARN_ON_UNDEFINED_SYMBOLS=0 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s FULL_ES3=1 -s USE_WEBGPU=1 -s USE_GLFW=3 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2 -s MODULARIZE=1
   -s EXCEPTION_CATCHING_ALLOWED=["main","_ZN3s3d7TryMainEv"] -s ASYNCIFY=1 -s ASYNCIFY_IGNORE_INDIRECT=1
   -s ASYNCIFY_IMPORTS="[ 'siv3dRequestAnimationFrame', 'siv3dGetClipboardText', 'siv3dDecodeImageFromFile', 'siv3dSleepUntilWaked', 'invoke_vi', 'invoke_v' ]"
